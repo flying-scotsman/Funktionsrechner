@@ -1,6 +1,8 @@
 /*
     Ein Funktionsrechner -- eine einfache Implementierung eines arithmetischen Parsers
 
+    Main braucht ein Argument in Form einer Textdatei, die dann geparst wird
+
     Der Shunting-Yard-Algorithmus wird hier angewendet, ohne Operatoren-Präferenz,
     da die Ausdrücke vollständig geklammert sind. Anstatt dem Stapel-Konzept wird hier
     das std::vector benutzt, da im Zusatz zu push/pop Fähigkeiten kann ein std::vector
@@ -22,10 +24,6 @@
 #include <cctype> // isdigit
 
 using namespace std;
-
-// TODO:
-// Too many (correct) brackets should not cause a crash
-// What about negative numbers?
 
 void evaluate(ifstream& str_);
 void performOperation(vector<float>& vals_, vector<char>& ops_);
