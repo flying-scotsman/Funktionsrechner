@@ -11,6 +11,9 @@
     Syntaxfehler und andere Fehler (nicht numerische Charaktere) werden detektiert und
     angezeigt. Unnötige aber nicht falsche Mehrklammerung ist erlaubt.
 
+    WICHTIG: Die Grammatik unterstützt negative Zahlen (unär "-"), dies wird durch
+    das Tilde-Symbol "~" ausgedrückt. Sie müssen trotzdem vollständig geklammert sein.
+
     Matthew F. B. Green
 
     11.03.17
@@ -68,11 +71,13 @@ void evaluate(ifstream& str_) {
     // Ein Charakter nach dem anderen wird eingelesen
     char c;
     while(str_.get(c)) {
+            // Leerzeichen werden einfach übersprungen
+        if(c == ' ') continue;
         // Wenn ein Kommentar kommt, wird die Linie übersprungen
-        if(c == '#') lineClear(str_, vals, ops, num, bcount);
+        else if(c == '#') lineClear(str_, vals, ops, num, bcount);
         // c ist entweder eine öffnende Klammer oder ein Operator
         // Da Terme vollständig geklammert sind, ist die Reihenfolge von Operatoren irrelevant
-        else if(c == '(' || c == '+' || c == '-' || c == '*' || c == '/') {
+        else if(c == '(' || c == '+' || c == '-' || c == '*' || c == '/' || c == '~') {
             // Wenn c ein Operator ist, füge es zum Operator-Vektor hinzu
             if(c != '(') ops.insert(ops.begin(), c);
 
@@ -94,10 +99,10 @@ void evaluate(ifstream& str_) {
                 // Dies kümmert sich um die erste schließende Klammer, falls es eine Reihe davon gibt
                 if(!ops.empty()) performOperation(vals, ops);
             }
-            // Operation wird ausgeführt wenn beide Vektoren nicht leer sind
+            // Eine weitere Operation wird ausgeführt wenn beide Vektoren nicht leer sind
             // ALLERDINGS wenn num leer ist und es noch Operationen im Vektor gibt,
             // obwohl die Klammerzahl nicht gleich 0 ist, sollte die Operation nicht ausgeführt werden
-            // Dies erlaubt (unnötige) Doppelklammern, wie in Term 5
+            // Dies erlaubt (unnötige) Doppelklammern, wie in Term 5 (meiner Testdatei)
             else if(!vals.empty() && !ops.empty() && bcount == 0) performOperation(vals, ops);
         }
         // Zeilenende - Operation wird eventuell ausgeführt
@@ -154,9 +159,11 @@ void performOperation(vector<float>& vals_, vector<char>& ops_) {
     if(op == '-')   val = vals_.front() - val;
     if(op == '*')   val = vals_.front() * val;
     if(op == '/')   val = vals_.front() / val;
+    // Unär minus
+    if(op == '~')   val = 0 - val;
 
-    // Der zweite Wert kann jetzt entfernt werden
-    vals_.erase(vals_.begin());
+    // Der zweite Wert kann jetzt entfernt werden, wenn die Operation binär war
+    if(op != '~')   vals_.erase(vals_.begin());
 
     // Der berechnete Wert val geht jetzt zum Vektor
     vals_.insert(vals_.begin(), val);
@@ -175,8 +182,8 @@ void lineClear(ifstream& str_, vector<float>& vals_, vector<char>& ops_, string&
     string l;
     getline(str_, l);
 
-    // Die Vektoren und num werden geleert, damit sie nicht
-    // falscherweise weiterhin evaluiert werden in dieser Zeile
+    // Die Vektoren und num werden geleert, damit sie in dieser Zeile
+    // nicht falscherweise weiterhin evaluiert werden
     num_.clear();
     vals_.clear();
     ops_.clear();
